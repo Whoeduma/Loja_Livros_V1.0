@@ -1,9 +1,11 @@
 package com.loja.livros.repository;
 
-import com.loja.livros.model.Livros;
+import com.loja.livros.model.LivrosEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface LivrosRepository extends JpaRepository<Livros, Integer> {
+@Repository
+public interface LivrosRepository extends JpaRepository<LivrosEntity, Long> {
     // O JpaRepository  traz métodos prontos como:
     // - findAll()
     // - findById()

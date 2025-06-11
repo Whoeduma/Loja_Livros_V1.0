@@ -1,12 +1,18 @@
 package com.loja.livros.service;
 
-import com.loja.livros.model.Livros;
-import com.loja.livros.model.Vendas;
+import com.loja.livros.dto.VendaLivrosDTO;
+import com.loja.livros.dto.VendasDTO;
+import com.loja.livros.model.LivrosEntity;
+import com.loja.livros.model.VendaLivrosEntity;
+import com.loja.livros.model.VendasEntity;
 import com.loja.livros.repository.LivrosRepository;
 import com.loja.livros.repository.VendasRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,50 +26,77 @@ public class VendasService {
     @Autowired
     private LivrosRepository livrosRepository;
 
+    @Autowired
+    private VendaLivrosService vendaLivrosService;
+
     // Listar todas as vendas
-    public List<Vendas> listarTodos() {
+    public List<VendasEntity> listarTodos() {
         return vendasRepository.findAll();
     }
 
     //Buscar uma venda por ID
-    public Vendas buscarPorId(Integer id) {
+    public VendasEntity buscarPorId(Long id) {
         return vendasRepository.findById(id).orElse(null);
     }
 
     // Salvar nova venda com cálculo automático do valor total
-    public Vendas salvar(Vendas venda) {
-        Livros livro = livrosRepository.findById(venda.getLivro().getId())
-                .orElseThrow(() -> new RuntimeException("Livro não encontrado com ID: " + venda.getLivro().getId()));
-        Double precoUnitario = livro.getPreco();
-        Integer quantidade = venda.getQtd();
-        Double precoTotal = precoUnitario * quantidade;
+    public VendasEntity salvar(VendasDTO dto) {
+        VendasEntity venda = new VendasEntity();
+        venda.setDataVenda(dto.getDataVenda());
 
-        venda.setLivro(livro); // garante que o objeto esteja populado corretamente
-        venda.setPrecoTotal(precoTotal);
+        BigDecimal valorTotal = BigDecimal.ZERO;
 
-        return vendasRepository.save(venda);
+        for (VendaLivrosDTO item : dto.getItens()) {
+            LivrosEntity livro = livrosRepository.findById(item.getIdLivro()).orElseThrow(() ->
+                    new RuntimeException("Livro não encontrado"));
+            // Multiplica valor unitário pela quantidade vendida
+            BigDecimal subtotal = livro.getVlrUnitario().multiply(BigDecimal.valueOf(item.getQtd()));
+            //soma ao total da venda
+            valorTotal = valorTotal.add(subtotal);
+        }
+        venda.setValorTotal(valorTotal);
+        vendasRepository.save(venda);
+
+        for (VendaLivrosDTO item : dto.getItens()) {
+            item.setIdVenda(venda.getId());
+            item.setIdLivro(item.getIdLivro());
+            item.setQtd(item.getQtd());
+            System.out.println("Item salvo: " + item);
+            vendaLivrosService.salvar(item);
+        }
+        return venda;
     }
 
     //atualizar uma venda existente
-    public Vendas atualizar(Integer id, Vendas novaVenda) {
-        Vendas vendaExistente = vendasRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada com ID: " + id));
+    @Transactional
+    public VendasEntity atualizar(Long id, VendasDTO dto) {
+        VendasEntity venda = vendasRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venda não encontrada"));
 
-        Livros livro = livrosRepository.findById(novaVenda.getLivro().getId())
-                .orElseThrow(() -> new RuntimeException("Livro não encontrado com ID:" + novaVenda.getLivro().getId()));
+        // Atualiza os dados principais da venda
+        venda.setDataVenda(dto.getDataVenda());
+        venda.setValorTotal(dto.getValorTotal());
 
-        vendaExistente.setLivro(livro);
-        vendaExistente.setQtd(novaVenda.getQtd());
-        vendaExistente.setDataVenda(novaVenda.getDataVenda());
-        // Recalcula o preço total com base no novo livro e nova quantidade
-        vendaExistente.setPrecoTotal(livro.getPreco() * novaVenda.getQtd());
+        vendasRepository.save(venda);
 
-        return vendasRepository.save(vendaExistente);
+        // Remove os itens antigos
+        vendaLivrosService.deletarPorIdVenda(id);
 
+        for (VendaLivrosDTO item : dto.getItens()) {
+            item.setIdVenda(id);
+            item.setIdLivro(item.getIdLivro());
+            item.setQtd(item.getQtd());
+            System.out.println("Item salvo: " + item);
+            vendaLivrosService.salvar(item);
+        }
+
+        return venda;
     }
 
+
     //deletar uma venda
-    public void deletar(Integer id){
+    public void deletar(Long id){
+        vendaLivrosService.deletarPorIdVenda(id);
         vendasRepository.deleteById(id);
     }
 

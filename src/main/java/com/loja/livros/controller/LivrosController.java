@@ -1,7 +1,7 @@
 package com.loja.livros.controller;
 
 import com.loja.livros.dto.LivrosDTO;
-import com.loja.livros.model.Livros;
+import com.loja.livros.model.LivrosEntity;
 import com.loja.livros.service.LivrosService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +18,13 @@ public class LivrosController {
 
     //GET/livros ➜ Lista todos os livros
     @GetMapping("/listar")
-    public List<Livros> listarTodos() {
+    public List<LivrosEntity> listarTodos() {
         return livrosService.listarTodos();
     }
+
     //GET /livros/{id} ➜ Busca um livro por ID
     @GetMapping("/buscar/{id}")
-    public Livros buscarPorId(@PathVariable Integer id) {
+    public LivrosEntity buscarPorId(@PathVariable Long id) {
         return livrosService.buscarPorId(id);
     }
 
@@ -35,13 +36,13 @@ public class LivrosController {
 
     //PUT /livros/{id} ➜ Atualiza um livro
     @PutMapping("/atualizar/{id}")
-    public LivrosDTO atualizar(@PathVariable Integer id, @RequestBody LivrosDTO dto){
+    public LivrosDTO atualizar(@PathVariable Long id, @RequestBody LivrosDTO dto){
         return livrosService.atualizar(id, dto);
     }
 
     // DELETE /livros/{id} ➜ Deleta um livro
     @DeleteMapping("/deletar/{id}")
-        public void deletar(@PathVariable Integer id) {
+        public void deletar(@PathVariable Long id) {
             livrosService.deletar(id);
     }
 

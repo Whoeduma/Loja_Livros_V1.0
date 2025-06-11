@@ -1,17 +1,19 @@
 package com.loja.livros.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class VendasDTO {
-    private Integer id;
-    private Integer livroId;
-    private String nomeLivro;
+    private Long id;
     private LocalDate dataVenda;
-    private Integer quantidade;
-    private Double precoTotal;
+    private BigDecimal valorTotal;
+    private List<VendaLivrosDTO> itens;
 }

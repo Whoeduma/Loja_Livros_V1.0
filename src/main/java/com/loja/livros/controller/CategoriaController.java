@@ -1,6 +1,7 @@
 package com.loja.livros.controller;
 
 import com.loja.livros.dto.CategoriaDTO;
+import com.loja.livros.model.CategoriaEntity;
 import com.loja.livros.service.CategoriaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class CategoriaController {
 
     //Quando alguém bater na porta GET /categorias, a gente mostra todas as categorias
     @GetMapping("/listar")
-    public List<CategoriaDTO> listarTodos() {
+    public List<CategoriaEntity> listarTodos() {
         return categoriaService.listarTodos();
     }
 
@@ -33,19 +34,19 @@ public class CategoriaController {
 
     //Quando alguém quiser atualizar uma categoria, usa PUT /categorias/1 (por exemplo)
     @PutMapping("/atualizar/{id}")
-    public CategoriaDTO atualizar(@PathVariable Integer id, @RequestBody CategoriaDTO dto){
+    public CategoriaDTO atualizar(@PathVariable Long id, @RequestBody CategoriaDTO dto){
         return categoriaService.atualizar(id,dto);
     }
 
     //Quando alguém quiser ver uma categoria específica, GET /categorias/1
     @GetMapping("/buscar/{id}")
-    public CategoriaDTO buscarPorId(@PathVariable Integer id) {
+    public CategoriaDTO buscarPorId(@PathVariable Long id) {
         return categoriaService.buscarPorId(id);
     }
 
     //Quando alguém quiser apagar uma categoria, usa DELETE /categorias/1
     @DeleteMapping("/deletar/{id}")
-    public void deletar(@PathVariable Integer id) {
+    public void deletar(@PathVariable Long id) {
         categoriaService.deletar(id);
     }
 
